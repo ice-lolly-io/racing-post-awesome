@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Racing Prediction App</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .prediction-set { margin-bottom: 20px; }
+        h2 { color: #333; }
+        .result { margin-left: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Racing Prediction App</h1>
+    <div id="predictions"></div>
+
+    <script>
+        // Example data (this would normally be fetched from an API)
+        const races = [
+            { course: "Beverley", meeting_time: "14:00", win_percentage: 0.92, profit_loss: 0.7, actual_expected: 0.6 },
+            { course: "Epsom", meeting_time: "14:00", win_percentage: 0.91, profit_loss: 0.65, actual_expected: 0.5 },
+            { course: "Yarmouth", meeting_time: "14:00", win_percentage: 0.89, profit_loss: 0.6, actual_expected: 0.4 },
+            { course: "Leopardstown", meeting_time: "14:00", win_percentage: 0.83, profit_loss: 0.5, actual_expected: 0.3 },
+            { course: "Newmarket", meeting_time: "14:00", win_percentage: 0.77, profit_loss: 0.4, actual_expected: 0.2 }
+        ];
+
+        // Weights for each factor
+        const WEIGHTS = { win_percentage: 0.5, profit_loss: 0.3, actual_expected: 0.2 };
+
+        // Calculate scores and predictions
+        function calculatePredictions(races, topN = 3) {
+            races.forEach(race => {
+                race.confidence_score = 
+                    (race.win_percentage * WEIGHTS.win_percentage) +
+                    (race.profit_loss * WEIGHTS.profit_loss) +
+                    (race.actual_expected * WEIGHTS.actual_expected);
+            });
+
+            // Sort by confidence score in descending order
+            races.sort((a, b) => b.confidence_score - a.confidence_score);
+
+            // Generate prediction sets
+            let output = '';
+            for (let i = 0; i < topN; i++) {
+                const winner = races[i];
+                const forecast = races.slice(i, i + 2);
+                const tricast = races.slice(i, i + 3);
+
+                output += `<div class="prediction-set">
+                    <h2>Prediction Set ${i + 1}</h2>
+                    <div class="result">Winner at ${winner.course} meeting at ${winner.meeting_time} is <strong>number ${i + 1}</strong> (${winner.course}) with confidence score <strong>${winner.confidence_score.toFixed(2)}</strong></div>
+                    <div class="result">Forecast at ${winner.course} meeting at ${winner.meeting_time} includes:</div>
+                    <ul>
+                        <li>Number ${i + 1} (${forecast[0].course}) with confidence score ${forecast[0].confidence_score.toFixed(2)}</li>
+                        <li>Number ${i + 2} (${forecast[1].course}) with confidence score ${forecast[1].confidence_score.toFixed(2)}</li>
+                    </ul>
+                    <div class="result">Tricast at ${winner.course} meeting at ${winner.meeting_time} includes:</div>
+                    <ul>
+                        <li>Number ${i + 1} (${tricast[0].course}) with confidence score ${tricast[0].confidence_score.toFixed(2)}</li>
+                        <li>Number ${i + 2} (${tricast[1].course}) with confidence score ${tricast[1].confidence_score.toFixed(2)}</li>
+                        <li>Number ${i + 3} (${tricast[2].course}) with confidence score ${tricast[2].confidence_score.toFixed(2)}</li>
+                    </ul>
+                </div>`;
+            }
+            document.getElementById("predictions").innerHTML = output;
+        }
+
+        // Run predictions
+        calculatePredictions(races);
+    </script>
+</body>
+</html>
